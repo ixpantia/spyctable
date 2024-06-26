@@ -1,9 +1,7 @@
-console.log("Hola desde ixtable")
+var spyCTableBinding = new Shiny.OutputBinding();
 
-var ixTableBinding = new Shiny.OutputBinding();
-
-ixTableBinding.find = function(scope) {
-  return $(scope).find(".ix-table");
+spyCTableBinding.find = function(scope) {
+  return $(scope).find(".spyctable");
 }
 
 // Its its true then it's dragging
@@ -84,7 +82,7 @@ function fromHTML(html, trim = true) {
   return result;
 }
 
-ixTableBinding.renderValue = function(el, msg) {
+spyCTableBinding.renderValue = function(el, msg) {
 
   let id = el.id;
   let inputId = id + '_cells_selected';
@@ -120,4 +118,4 @@ ixTableBinding.renderValue = function(el, msg) {
 
 }
 
-Shiny.outputBindings.register(ixTableBinding, "ixTableBinding");
+Shiny.outputBindings.register(spyCTableBinding, "spyCTableBinding");

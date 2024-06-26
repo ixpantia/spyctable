@@ -216,11 +216,11 @@ impl<'a> ContainerBuilder<'a> {
 
 /// @export
 #[extendr]
-fn ixt_header_create(names: Strings) -> String {
+fn spyc_header_create(names: Strings) -> String {
     ContainerBuilder::new(&names).build()
 }
 
 extendr_module! {
     mod header;
-    fn ixt_header_create;
+    fn spyc_header_create;
 }

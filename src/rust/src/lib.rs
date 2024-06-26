@@ -39,7 +39,7 @@ fn filter_from_values_vec(values_vec: Integers, data: List) -> List {
 // This ensures exported functions are registered with R.
 // See corresponding C code in `entrypoint.c`.
 extendr_module! {
-    mod ixtable;
+    mod spyctable;
     use header;
     fn filter_from_values_vec;
 }

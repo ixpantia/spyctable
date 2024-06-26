@@ -26,13 +26,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ixtable"
-version = "0.1.0"
-dependencies = [
- "extendr-api",
-]
-
-[[package]]
 name = "libR-sys"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -66,6 +59,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0fa76aaf39101c457836aec0ce2316dbdc3ab723cdda1c6bd4e6ad4208acaca7"
 dependencies = [
  "proc-macro2",
+]
+
+[[package]]
+name = "spyctable"
+version = "0.1.0"
+dependencies = [
+ "extendr-api",
 ]
 
 [[package]]

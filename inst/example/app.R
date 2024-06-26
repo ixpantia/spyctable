@@ -1,4 +1,4 @@
-library(ixtable)
+library(spyctable)
 library(shiny)
 library(tidyselect)
 library(dplyr)
@@ -6,7 +6,7 @@ library(dplyr)
 ui <- fluidPage(
   theme = bslib::bs_theme(version = 5),
   actionButton("rerender", "Rerender"),
-  ixTableOutput("tabla")
+  spyCTableOutput("tabla")
 )
 
 char_iris <- 1:100 |>
@@ -15,14 +15,14 @@ char_iris <- 1:100 |>
 
 server <- function(input, output, session) {
 
-  output$tabla <- renderIxTable({
+  output$tabla <- renderSpyCTable({
     char_iris
   }) |>
     bindEvent(input$rerender)
 
   observe({
     print(
-      get_ixtable_selection(input$tabla_cells_selected, char_iris)
+      get_spyc_table_selection(input$tabla_cells_selected, char_iris)
     )
   })
 }

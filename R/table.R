@@ -1,35 +1,35 @@
 #' @export
-renderIxTable <- function(expr, env = parent.frame(), quoted = FALSE) {
+renderSpyCTable <- function(expr, env = parent.frame(), quoted = FALSE) {
   func <- shiny::exprToFunction(expr, env, quoted)
   shiny::reactive({
     to_render <- func()
     list(
       data = to_render,
-      thead = jsonlite::unbox(ixt_header_create(colnames(to_render)))
+      thead = jsonlite::unbox(spyc_header_create(colnames(to_render)))
     )
   })
 }
 
 #' @export
-ixTableOutput <- function(id, scroll_y = "50vh") {
+spyCTableOutput <- function(id, scroll_y = "50vh") {
   shiny::tagList(
     htmltools::htmlDependency(
-      name = "ixTable",
+      name = "spyctable",
       version = "0.1.0",
-      package = "ixtable",
+      package = "spyctable",
       src = "table",
       script = "index.js"
     ),
     htmltools::htmlDependency(
       name = "datatables",
       version = "2.0.8",
-      package = "ixtable",
+      package = "spyctable",
       src = "datatables",
       script = "datatables.min.js",
       stylesheet = "datatables.min.css"
     ),
     shiny::div(
-      class = "ix-table",
+      class = "spyctable",
       id = id,
       `scroll-y` = scroll_y
     )
@@ -37,6 +37,6 @@ ixTableOutput <- function(id, scroll_y = "50vh") {
 }
 
 #' @export
-get_ixtable_selection <- function(input, dataset) {
+get_spyc_table_selection <- function(input, dataset) {
   filter_from_values_vec(as.integer(input), dataset)
 }

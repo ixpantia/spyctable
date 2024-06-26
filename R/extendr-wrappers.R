@@ -4,17 +4,17 @@
 
 #
 # This file was created with the following call:
-#   .Call("wrap__make_ixtable_wrappers", use_symbols = TRUE, package_name = "ixtable")
+#   .Call("wrap__make_spyctable_wrappers", use_symbols = TRUE, package_name = "spyctable")
 
 #' @docType package
 #' @usage NULL
-#' @useDynLib ixtable, .registration = TRUE
+#' @useDynLib spyctable, .registration = TRUE
 NULL
 
 filter_from_values_vec <- function(values_vec, data) .Call(wrap__filter_from_values_vec, values_vec, data)
 
 #' @export
-ixt_header_create <- function(names) .Call(wrap__ixt_header_create, names)
+spyc_header_create <- function(names) .Call(wrap__spyc_header_create, names)
 
 
 # nolint end
