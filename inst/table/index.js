@@ -7,13 +7,13 @@ spyCTableBinding.find = function(scope) {
 // Its its true then it's dragging
 var is_dragging = false;
 
-addEventListener("mousedown", (_event) => {
-  is_dragging = true;
-});
-
-addEventListener("mouseup", (_event) => {
+function disable_dragging() {
   is_dragging = false;
-});
+}
+
+function enable_dragging() {
+  is_dragging = true;
+}
 
 function selected_deselected(el) {
   const selection = el.selection;
@@ -40,8 +40,24 @@ function mouse_down_event() {
   selected_deselected(this)
 }
 
+// If anywhere on the page the mouseup event is found
+// then we disable dragging
+addEventListener("mouseup", (_event) => {
+  disable_dragging();
+});
+
 function build_tbody(selection, inputId, len_x, len_y, data, keys) {
   var tbody = document.createElement("tbody");
+
+  // If the user clicks then we enable dragging
+  tbody.onmousedown = enable_dragging;
+
+  // If the user's mouse leaves the table we disable dragging
+  tbody.onmouseleave = disable_dragging;
+
+  // Just in case, if the mouse just entered the table we
+  // disable dragging aswell
+  tbody.onmouseenter = disable_dragging;
 
   const fragment = document.createDocumentFragment();
 
