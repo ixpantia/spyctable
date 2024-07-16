@@ -4,6 +4,9 @@ spyCTableBinding.find = function(scope) {
   return $(scope).find(".spyctable");
 }
 
+var globalSpyCTableIndex = new Map();
+var spyCTableSelectionBuffer = new Array();
+
 // Its its true then it's dragging
 var is_dragging = false;
 
@@ -16,18 +19,23 @@ function enable_dragging() {
 }
 
 function selected_deselected(el) {
-  const selection = el.selection;
+  // This is a pointer to the selection array 
+  const selection = globalSpyCTableIndex.get(el.tableId);
   let is_selected = el.classList.contains('selected');
   if (is_selected) {
-    selection.delete(el.coords);
+    selection.delete(el);
     el.classList.remove("bg-primary");
     el.classList.remove("selected");
   } else {
-    selection.add(el.coords);
+    selection.add(el);
     el.classList.add("bg-primary");
     el.classList.add("selected");
   }
-  Shiny.setInputValue(el.inputId, Array.from(selection))
+  spyCTableSelectionBuffer.length = 0;
+  for (const element of selection) {
+    spyCTableSelectionBuffer.push(element.coords);
+  }
+  Shiny.setInputValue(el.inputId, spyCTableSelectionBuffer);
 }
 
 function mouse_over_event() {
@@ -40,13 +48,27 @@ function mouse_down_event() {
   selected_deselected(this)
 }
 
+// This function is to deselect everything in the table
+function spyctable_deselect_all(tableId) {
+  const selection = globalSpyCTableIndex.get(tableId);
+  if (selection !== undefined) {
+    for (const element of selection) {
+      element.classList.remove("bg-primary");
+      element.classList.remove("selected");
+    }
+    selection.clear();
+    spyCTableSelectionBuffer.length = 0;
+    Shiny.setInputValue(el.inputId, spyCTableSelectionBuffer);
+  }
+}
+
 // If anywhere on the page the mouseup event is found
 // then we disable dragging
 addEventListener("mouseup", (_event) => {
   disable_dragging();
 });
 
-function build_tbody(selection, inputId, len_x, len_y, data, keys) {
+function build_tbody(tableId, inputId, len_x, len_y, data, keys) {
   var tbody = document.createElement("tbody");
 
   // If the user clicks then we enable dragging
@@ -68,7 +90,8 @@ function build_tbody(selection, inputId, len_x, len_y, data, keys) {
       current_cel.coords = [c, i];
       current_cel.innerText = data[keys[c]][i];
       current_cel.classList.add("user-select-none");
-      current_cel.selection = selection;
+      //We passed the pointer to every single cell 
+      current_cel.tableId = tableId;
       current_cel.onmouseover = mouse_over_event;
       current_cel.onmousedown = mouse_down_event;
       current_cel.inputId = inputId;
@@ -109,9 +132,13 @@ spyCTableBinding.renderValue = function(el, msg) {
     Shiny.setInputValue(inputId, new Array())
   }
 
+  var selection = globalSpyCTableIndex.get(id);
+  if (selection === undefined) {
+    selection = new Set();
+    globalSpyCTableIndex.set(id, selection);
+  }
   let data = msg.data;
   let thead_content = msg.thead;
-  el.selection = new Set();
   let keys = Object.keys(data);
   let len_x = keys.length;
   let len_y = data[keys[0]].length;
@@ -119,7 +146,7 @@ spyCTableBinding.renderValue = function(el, msg) {
   table.classList.add("table");
   table.id = id + '_inner_table';
   table.appendChild(fromHTML(thead_content));
-  table.appendChild(build_tbody(el.selection, inputId, len_x, len_y, data, keys));
+  table.appendChild(build_tbody(id, inputId, len_x, len_y, data, keys));
   el.appendChild(table);
 
   let scroll_y = el.getAttribute("scroll-y");
