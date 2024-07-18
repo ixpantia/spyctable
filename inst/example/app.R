@@ -9,20 +9,17 @@ ui <- fluidPage(
   spyCTableOutput("tabla")
 )
 
-char_iris <- 1:100 |>
-  purrr::map_df(~ iris) |>
-  dplyr::mutate(dplyr::across(tidyselect::everything(), as.character))
-
 server <- function(input, output, session) {
 
   output$tabla <- renderSpyCTable({
-    char_iris
+    iris |>
+      dplyr::mutate(Species = as.character(Species))
   }) |>
     bindEvent(input$rerender)
 
   observe({
     print(
-      get_spyc_table_selection(input$tabla_cells_selected, char_iris)
+      get_spyc_table_selection(input$tabla_cells_selected, iris)
     )
   })
 }

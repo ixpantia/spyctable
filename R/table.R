@@ -1,11 +1,21 @@
 #' @export
-renderSpyCTable <- function(expr, env = parent.frame(), quoted = FALSE) {
+renderSpyCTable <- function(expr, env = parent.frame(), quoted = FALSE, id) {
   func <- shiny::exprToFunction(expr, env, quoted)
+  session <- shiny::getDefaultReactiveDomain();
   shiny::reactive({
     to_render <- func()
     list(
-      data = to_render,
-      thead = jsonlite::unbox(spyc_header_create(colnames(to_render)))
+      # data = to_render,
+      html = jsonlite::unbox(
+        build_spyctable_html(
+          to_render,
+          colnames(to_render),
+          nrow(to_render),
+          "K",
+          "dash",
+          id = shiny::getCurrentOutputInfo()$name
+        )
+      )
     )
   })
 }

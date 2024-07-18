@@ -14,7 +14,7 @@ NULL
 filter_from_values_vec <- function(values_vec, data) .Call(wrap__filter_from_values_vec, values_vec, data)
 
 #' @export
-spyc_header_create <- function(names) .Call(wrap__spyc_header_create, names)
+build_spyctable_html <- function(data, names, nrow, format, na, id) .Call(wrap__build_spyctable_html, data, names, nrow, format, na, id)
 
 
 # nolint end

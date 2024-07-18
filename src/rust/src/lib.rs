@@ -1,5 +1,10 @@
 use extendr_api::prelude::*;
+
+use crate::tbody::{Formatting, NAFormatting};
+use std::io::Write;
 mod header;
+mod tbody;
+mod tfoot;
 
 fn list_from_vec_vec(values: Vec<Vec<&str>>, names: StrIter) -> List {
     let mut result_list = List::from_iter(values.into_iter().map(|mut values| {
@@ -35,11 +40,30 @@ fn filter_from_values_vec(values_vec: Integers, data: List) -> List {
     list_from_vec_vec(result_list, data.names().expect("Must have names"))
 }
 
+/// @export
+#[extendr]
+fn build_spyctable_html(
+    data: List,
+    names: Strings,
+    nrow: i32,
+    format: Formatting,
+    na: NAFormatting,
+    id: &str,
+) -> String {
+    let mut buffer = Vec::new();
+    let _ = write!(&mut buffer, r#"<table id="{id}_inner_table">"#);
+    header::spyc_header_create(names, &mut buffer);
+    tbody::build_tbody_and_foot(nrow, data, format, na, &mut buffer);
+    let _ = write!(&mut buffer, "</table>");
+
+    unsafe { String::from_utf8_unchecked(buffer) }
+}
+
 // Macro to generate exports.
 // This ensures exported functions are registered with R.
 // See corresponding C code in `entrypoint.c`.
 extendr_module! {
     mod spyctable;
-    use header;
     fn filter_from_values_vec;
+    fn build_spyctable_html;
 }

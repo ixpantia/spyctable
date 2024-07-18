@@ -188,16 +188,15 @@ impl<'a> ContainerBuilder<'a> {
         }
         Some((rowspan, colspan))
     }
-    fn build(mut self) -> String {
-        let mut buffer = Vec::<u8>::new();
-        let _ = write!(&mut buffer, "<thead>");
+    fn build(mut self, buffer: &mut Vec<u8>) {
+        let _ = write!(buffer, "<thead>");
 
         for row in 0..self.data.nrow {
-            let _ = write!(&mut buffer, "<tr>");
+            let _ = write!(buffer, "<tr>");
             for col in 0..self.data.ncol {
                 if let Some((rowspan, colspan)) = self.render_th(row, col) {
                     let _ = write!(
-                        &mut buffer,
+                        buffer,
                         r#"
                         <th colspan={colspan} rowspan={rowspan} class="border text-center align-middle">{}</th>
                         "#,
@@ -205,22 +204,13 @@ impl<'a> ContainerBuilder<'a> {
                     );
                 }
             }
-            let _ = write!(&mut buffer, "</tr>");
+            let _ = write!(buffer, "</tr>");
         }
 
-        let _ = write!(&mut buffer, "</thead>");
-
-        unsafe { String::from_utf8_unchecked(buffer) }
+        let _ = write!(buffer, "</thead>");
     }
 }
 
-/// @export
-#[extendr]
-fn spyc_header_create(names: Strings) -> String {
-    ContainerBuilder::new(&names).build()
-}
-
-extendr_module! {
-    mod header;
-    fn spyc_header_create;
+pub fn spyc_header_create(names: Strings, buffer: &mut Vec<u8>) {
+    ContainerBuilder::new(&names).build(buffer);
 }
