@@ -1,18 +1,26 @@
 #' @export
+spyctable <- function(data, format = "default", na = "zero") {
+  list(
+    data = data,
+    format = format,
+    na = na
+  )
+}
+
+#' @export
 renderSpyCTable <- function(expr, env = parent.frame(), quoted = FALSE, id) {
   func <- shiny::exprToFunction(expr, env, quoted)
-  session <- shiny::getDefaultReactiveDomain();
+  session <- shiny::getDefaultReactiveDomain()
   shiny::reactive({
     to_render <- func()
     list(
-      # data = to_render,
       html = jsonlite::unbox(
         build_spyctable_html(
-          to_render,
-          colnames(to_render),
-          nrow(to_render),
-          "K",
-          "dash",
+          to_render$data,
+          colnames(to_render$data),
+          nrow(to_render$data),
+          to_render$format,
+          to_render$na,
           id = shiny::getCurrentOutputInfo()$name
         )
       )
@@ -48,5 +56,5 @@ spyCTableOutput <- function(id, scroll_y = "50vh") {
 
 #' @export
 get_spyc_table_selection <- function(input, dataset) {
-  filter_from_values_vec(as.integer(input), dataset)
+  filter_from_values_vec(as.character(input), dataset)
 }

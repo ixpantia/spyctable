@@ -20,7 +20,7 @@ function enable_dragging() {
 
 function selected_deselected(el) {
   // This is a pointer to the selection array 
-  const selection = globalSpyCTableIndex.get(el.tableId);
+  const selection = globalSpyCTableIndex.get(el.dataset.table_id);
   let is_selected = el.classList.contains('selected');
   if (is_selected) {
     selection.delete(el);
@@ -33,19 +33,19 @@ function selected_deselected(el) {
   }
   spyCTableSelectionBuffer.length = 0;
   for (const element of selection) {
-    spyCTableSelectionBuffer.push(element.coords);
+    spyCTableSelectionBuffer.push(element.dataset.coords);
   }
-  Shiny.setInputValue(el.inputId, spyCTableSelectionBuffer);
+  Shiny.setInputValue(el.dataset.table_id + '_cells_selected', spyCTableSelectionBuffer);
 }
 
-function mouse_over_event() {
+function mouse_over_event(el) {
   if (is_dragging) {
-    selected_deselected(this)
+    selected_deselected(el)
   }
 }
 
-function mouse_down_event() {
-  selected_deselected(this)
+function mouse_down_event(el) {
+  selected_deselected(el)
 }
 
 // This function is to deselect everything in the table
@@ -58,7 +58,7 @@ function spyctable_deselect_all(tableId) {
     }
     selection.clear();
     spyCTableSelectionBuffer.length = 0;
-    Shiny.setInputValue(el.inputId, spyCTableSelectionBuffer);
+    Shiny.setInputValue(tableId + '_cells_selected', spyCTableSelectionBuffer);
   }
 }
 
@@ -67,43 +67,6 @@ function spyctable_deselect_all(tableId) {
 addEventListener("mouseup", (_event) => {
   disable_dragging();
 });
-
-function build_tbody(tableId, inputId, len_x, len_y, data, keys) {
-  var tbody = document.createElement("tbody");
-
-  // If the user clicks then we enable dragging
-  tbody.onmousedown = enable_dragging;
-
-  // If the user's mouse leaves the table we disable dragging
-  tbody.onmouseleave = disable_dragging;
-
-  // Just in case, if the mouse just entered the table we
-  // disable dragging aswell
-  tbody.onmouseenter = disable_dragging;
-
-  const fragment = document.createDocumentFragment();
-
-  for (var i = 0; i < len_y; i++) {
-    var current_row = document.createElement("tr");
-    for (var c = 0; c < len_x; c++) {
-      var current_cel = document.createElement("td");
-      current_cel.coords = [c, i];
-      current_cel.innerText = data[keys[c]][i];
-      current_cel.classList.add("user-select-none");
-      //We passed the pointer to every single cell 
-      current_cel.tableId = tableId;
-      current_cel.onmouseover = mouse_over_event;
-      current_cel.onmousedown = mouse_down_event;
-      current_cel.inputId = inputId;
-      current_row.appendChild(current_cel);
-    }
-    fragment.appendChild(current_row);
-  }
-
-  tbody.appendChild(fragment);
-
-  return tbody;
-}
 
 function fromHTML(html, trim = true) {
   // Process the HTML string.
@@ -137,16 +100,8 @@ spyCTableBinding.renderValue = function(el, msg) {
     selection = new Set();
     globalSpyCTableIndex.set(id, selection);
   }
-  let data = msg.data;
-  let thead_content = msg.thead;
-  let keys = Object.keys(data);
-  let len_x = keys.length;
-  let len_y = data[keys[0]].length;
-  var table = document.createElement("table");
-  table.classList.add("table");
-  table.id = id + '_inner_table';
-  table.appendChild(fromHTML(thead_content));
-  table.appendChild(build_tbody(id, inputId, len_x, len_y, data, keys));
+
+  var table = fromHTML(msg.html);
   el.appendChild(table);
 
   let scroll_y = el.getAttribute("scroll-y");

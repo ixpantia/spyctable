@@ -2,6 +2,7 @@ use extendr_api::prelude::*;
 use extendr_api::AsTypedSlice;
 use std::io::Write;
 
+#[derive(Copy, Clone)]
 pub enum Formatting {
     Millions,
     Thousands,
@@ -22,6 +23,7 @@ impl<'a> FromRobj<'a> for Formatting {
     }
 }
 
+#[derive(Copy, Clone)]
 pub enum NAFormatting {
     Dash,
     Zero,
@@ -40,11 +42,44 @@ impl<'a> FromRobj<'a> for NAFormatting {
     }
 }
 
+fn build_td_na(na: NAFormatting, buffer: &mut Vec<u8>) {
+    let _ = match na {
+        NAFormatting::Dash => write!(
+            buffer,
+            r#"<td class="border text-center align-middle user-select-none">-</td>"#
+        ),
+        NAFormatting::Zero => write!(
+            buffer,
+            r#"<td class="border text-center align-middle user-select-none">0</td>"#
+        ),
+    };
+}
+
+fn build_td_non_na(format: Formatting, val: f64, buffer: &mut Vec<u8>) {
+    let _ = match format {
+        Formatting::Default => write!(
+            buffer,
+            r#"<td class="border text-center align-middle user-select-none">{val:.2}</td>"#
+        ),
+        Formatting::Millions => write!(
+            buffer,
+            r#"<td class="border text-center align-middle user-select-none">{val:.0}MM</td>"#,
+            val = val / 1_000_000.0
+        ),
+        Formatting::Thousands => write!(
+            buffer,
+            r#"<td class="border text-center align-middle user-select-none">{val:.0}K</td>"#,
+            val = val / 1_000.0
+        ),
+    };
+}
+
 pub fn build_tbody_and_foot(
     nrow: i32,
     data: List,
     format: Formatting,
     na: NAFormatting,
+    table_id: &str,
     buffer: &mut Vec<u8>,
 ) {
     let nrow = nrow as usize;
@@ -67,34 +102,10 @@ pub fn build_tbody_and_foot(
                 if let Some(real_slice) = data[c].as_real_slice() {
                     let val = real_slice[i];
                     if val.is_na() {
-                        let _ = match na {
-                            NAFormatting::Dash => write!(
-                                buffer,
-                                r#"<td class="border text-center align-middle">-</td>"#
-                            ),
-                            NAFormatting::Zero => write!(
-                                buffer,
-                                r#"<td class="border text-center align-middle">0</td>"#
-                            ),
-                        };
+                        build_td_na(na, buffer);
                     } else {
                         total_sum_lookup[c] += val;
-                        let _ = match format {
-                            Formatting::Default => write!(
-                                buffer,
-                                r#"<td class="border text-center align-middle">{val:.2}</td>"#
-                            ),
-                            Formatting::Millions => write!(
-                                buffer,
-                                r#"<td class="border text-center align-middle">{val:.0}MM</td>"#,
-                                val = val / 1_000_000.0
-                            ),
-                            Formatting::Thousands => write!(
-                                buffer,
-                                r#"<td class="border text-center align-middle">{val:.0}K</td>"#,
-                                val = val / 1_000.0
-                            ),
-                        };
+                        build_td_non_na(format, val, buffer);
                     }
                 }
             } else {
@@ -104,13 +115,13 @@ pub fn build_tbody_and_foot(
                         write!(
                             buffer,
                             r#"
-                            <td class="border text-center align-middle" onmouseover="mouse_over_event()" onmousedown="mouse_down_event()">{val}</td>
+                            <td data-coords="{c},{i}" data-table_id="{table_id}" class="user-select-none border text-center align-middle" onmouseover="mouse_over_event(this)" onmousedown="mouse_down_event(this)">{val}</td>
                             "#
                         )
                     }
                     None => write!(
                         buffer,
-                        r#"<td class="border text-center align-middle" onmouseover="mouse_over_event()" onmousedown="mouse_down_event()"></td>"#
+                        r#"<td data-coords="{c},{i}" data-table_id="{table_id}" class="user-select-none border text-center align-middle" onmouseover="mouse_over_event(this)" onmousedown="mouse_down_event(this)"></td>"#
                     ),
                 };
             }
@@ -134,10 +145,7 @@ pub fn build_tbody_and_foot(
                 r#"<td class="border text-center align-middle"></td>"#
             );
         } else {
-            let _ = write!(
-                buffer,
-                r#"<td class="border text-center align-middle">{val}</td>"#
-            );
+            build_td_non_na(format, val, buffer);
         }
     });
     let _ = write!(buffer, "</tr>");
@@ -155,11 +163,7 @@ pub fn build_tbody_and_foot(
                 r#"<td class="border text-center align-middle"></td>"#
             );
         } else {
-            let _ = write!(
-                buffer,
-                r#"<td class="border text-center align-middle">{val}</td>"#,
-                val = val / nrow as f64
-            );
+            build_td_non_na(format, val / nrow as f64, buffer);
         }
     });
     let _ = write!(buffer, "</tr>");
